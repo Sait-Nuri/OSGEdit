@@ -42,7 +42,7 @@ int main()
 	osg::Vec3d  center = osg::Vec3d(0.0,0.0,0.0);
 	osg::Vec3d  up = osg::Vec3d(0.0, 0.0, 1.0);
 	osg::Quat f16_attitude(osg::DegreesToRadians(90.0), osg::X_AXIS);
-	osg::Vec4d speed(-2.0,0.0,0.0, 1.0);
+	osg::Vec4d speed(-15.0,0.0,0.0, 1.0);
 
 	combinedModel = osgDB::readNodeFile("converted.osg");
 	f16 = findNamedNode(std::string("f16base"), combinedModel);
@@ -70,7 +70,7 @@ int main()
 	//viewer.addEventHandler(keh); 
 	viewer.home();
 
-	yaw(90.0, f16TrasformNode, speed, viewer);
+	yaw(-35.0, f16TrasformNode, speed, viewer);
 
 	while( !viewer.done() )
 	{		
@@ -167,25 +167,42 @@ void attitudeCamera(double angle, osg::Vec3f axis, osg::PositionAttitudeTransfor
 	translateM1.setTrans(-modelPos.x(), -modelPos.y(), -modelPos.z());
 	rotateM.makeRotate(osg::DegreesToRadians(angle), axis);
 
-	std::cout << modelPos.x() << " " << modelPos.y() << " " << modelPos.z() << std::endl;
-	std::cout << eye.x() << " " << eye.y() << " " << eye.z() << std::endl;
+	//std::cout << modelPos.x() << " " << modelPos.y() << " " << modelPos.z() << std::endl;
+	//std::cout << eye.x() << " " << eye.y() << " " << eye.z() << std::endl;
+	//std::cout << center.x() << " " << center.y() << " " << center.z() << std::endl;
+	//std::cout << eye.x() << " " << eye.y() << " " << eye.z() << std::endl;
 
-	//eye = translateM1*rotateM*translateM2*eye;
+	//center.set(center.x()+10, center.y(), center.z());
+	
 	eye = eye*translateM1;
-	std::cout << eye.x() << " " << eye.y() << " " << eye.z() << std::endl;
+	//std::cout << eye.x() << " " << eye.y() << " " << eye.z() << std::endl;
 	eye = eye*rotateM;
-	std::cout << eye.x() << " " << eye.y() << " " << eye.z() << std::endl;
+	//std::cout << eye.x() << " " << eye.y() << " " << eye.z() << std::endl;
 	eye = eye*translateM2;
 	std::cout << eye.x() << " " << eye.y() << " " << eye.z() << std::endl;
-
+	
+	
+	//std::cout << center.x() << " " << center.y() << " " << center.z() << std::endl;
 	center = center*translateM1;
-	center = rotateM*center;
+	//std::cout << center.x() << " " << center.y() << " " << center.z() << std::endl;
+	center = center*rotateM;
+	//std::cout << center.x() << " " << center.y() << " " << center.z() << std::endl;
 	center = center*translateM2;
+	std::cout << center.x() << " " << center.y() << " " << center.z() << std::endl;
+	
+
+	//eye.set(5000.0, -25.0, 1010.0);
+	//center.set(5000.0, 5000.0, 0.0);
+	
+	//up = rotateM*up;
+	//std::cout << eye.x() << " " << eye.y() << " " << eye.z() << std::endl;
+	//std::cout << center.x() << " " << center.y() << " " << center.z() << std::endl;
+
 
 	//std::cout << eye.x() << " " << eye.y() << " " << eye.z() << std::endl;
 	//std::cout << center.x() << " " << center.y() << " " << center.z() << std::endl;
 
-	//manipulator->setHomePosition(eye, center, up);
+	manipulator->setHomePosition(eye, center, up);
 }
 
 void yaw(double angle, osg::PositionAttitudeTransform* model, osg::Vec4d& speed, osgViewer::Viewer& viewer){
