@@ -1,25 +1,29 @@
 #include <osg/NodeCallback>
-#include <osg/PositionAttitudeTransform>
 #include <osgViewer/Viewer>
+#include <osg/Transform>
+#include <osg/Matrix>
 #include <osg/MatrixTransform>
 #include <osgDB/ReadFile> 
 #include <osgGA/TrackballManipulator>
 #include "KeyboardHandler.h"
 #include <iostream>
 #include <string>
+#include <osgDB/WriteFile>
 
-#define INITIAL_POS_X 5000.0
-#define INITIAL_POS_Y 1000.0
+#define INITIAL_POS_X 7000.0
+#define INITIAL_POS_Z 1000.0
+
+
 
 osg::Node* findNamedNode(const std::string& searchName, osg::Node* currNode);
 
-void setPosition(osg::Vec4d& speed, osg::PositionAttitudeTransform* model, osgViewer::Viewer& viewer);
-void setAttitude(double angle, osg::Vec3f axis, osg::PositionAttitudeTransform* model, osg::Vec4d& speed, osgViewer::Viewer& viewer);
-void yaw(double angle, osg::PositionAttitudeTransform* model, osg::Vec4d& speed, osgViewer::Viewer& viewer);
-void roll(double angle, osg::PositionAttitudeTransform* model, osg::Vec4d& speed, osgViewer::Viewer& viewer);
-void pitch(double angle, osg::PositionAttitudeTransform* model, osg::Vec4d& speed, osgViewer::Viewer& viewer);
-void setCamera(osg::Vec4d& speed, osgViewer::Viewer& viewer);
-void attitudeCamera(double angle, osg::Vec3f axis, osg::PositionAttitudeTransform* model, osgViewer::Viewer& viewer);
+void setPosition(osg::Vec3d& speed, osg::MatrixTransform* model, osgViewer::Viewer& viewer);
+void setAttitude(double angle, osg::Vec3f axis, osg::MatrixTransform* model, osg::Vec3d& speed, osgViewer::Viewer& viewer);
+void yaw(double angle, osg::MatrixTransform* model, osg::Vec3d& speed, osgViewer::Viewer& viewer);
+void roll(double angle, osg::MatrixTransform* model, osg::Vec3d& speed, osgViewer::Viewer& viewer);
+void pitch(double angle, osg::MatrixTransform* model, osg::Vec3d& speed, osgViewer::Viewer& viewer);
+void setCamera(osg::Matrixd& modelMatrix, osgViewer::Viewer& viewer);
+void attitudeCamera(double angle, osg::Vec3f axis, osg::MatrixTransform* model, osgViewer::Viewer& viewer);
 
 bool manuallyPlaceCamera = true;
 
@@ -35,101 +39,108 @@ int main()
 {
 	osg::Node* combinedModel = NULL;
 	osg::Node* f16 = NULL;
-	osg::PositionAttitudeTransform* f16TrasformNode = NULL;
 	osgViewer::Viewer viewer;
-
-	osg::Vec3d  eye = osg::Vec3d(INITIAL_POS_X+25, 0.0, INITIAL_POS_Y+10);
+	osg::MatrixTransform* f16MatrixNode;
+	osg::Matrixd translateInit;
+	osg::Matrixd rotateInit;
+	osg::Vec3d  eye = osg::Vec3d(INITIAL_POS_X+25, 0.0, INITIAL_POS_Z+7);
 	osg::Vec3d  center = osg::Vec3d(0.0,0.0,0.0);
 	osg::Vec3d  up = osg::Vec3d(0.0, 0.0, 1.0);
-	osg::Quat f16_attitude(osg::DegreesToRadians(90.0), osg::X_AXIS);
-	osg::Vec4d speed(-15.0,0.0,0.0, 1.0);
+	osg::Vec3d speed(-4.0,0.0,0.0);
+	osg::Vec3d initial(INITIAL_POS_X, 0.0, INITIAL_POS_Z);
 
-	combinedModel = osgDB::readNodeFile("converted.osg");
+	combinedModel = osgDB::readNodeFile("merged.osg");
 	f16 = findNamedNode(std::string("f16base"), combinedModel);
 
-	f16TrasformNode = dynamic_cast<osg::PositionAttitudeTransform*>(f16->asGroup()->getChild(0));
+	f16MatrixNode = dynamic_cast<osg::MatrixTransform*>(f16->asGroup()->getChild(0));
 	
-	if(!f16TrasformNode){
-		std::cout << "PositionAttitudeTransform not found!";
+	if(!f16MatrixNode){
+		std::cout << "MatrixTransform not found!";
 		return -1;
 	}
-
-	f16TrasformNode->setPosition( osg::Vec3d(INITIAL_POS_X, 0.0, INITIAL_POS_Y) );
-	f16TrasformNode->setAttitude(f16_attitude);
 	
-	//osg::Quat(osg::DegreesToRadians(90.0), osg::Vec3(1,0,0) ) );
+	rotateInit.makeRotate(osg::inDegrees(90.0), osg::X_AXIS );
+	translateInit.makeTranslate( initial );
+	f16MatrixNode->setMatrix(rotateInit*translateInit) ;
+
+	//osg::Matrixd modelMatrix = f16MatrixNode->getMatrix();
+	//osg::Matrixd translateM;
 
 	osgGA::TrackballManipulator *Tman = new osgGA::TrackballManipulator();
+	Tman->setHomePosition(eye, center, up);
+
 	viewer.setCameraManipulator(Tman);
 	viewer.setSceneData( combinedModel );
 	viewer.realize();
-	Tman->setHomePosition(eye, center, up);
-
-	//keyboardEventHandler* keh = new keyboardEventHandler();
-	//keh->addFunction('v', &toggleView);
-	//viewer.addEventHandler(keh); 
 	viewer.home();
 
-	yaw(-35.0, f16TrasformNode, speed, viewer);
+	//yaw(-180.0, f16MatrixNode, speed, viewer);
+	//pitch(-90.0, f16MatrixNode, speed, viewer);
+	//yaw(-10.0, f16MatrixNode, speed, viewer);
+	yaw(90.0, f16MatrixNode, speed, viewer);
+	//roll(-10.0, f16MatrixNode, speed, viewer);
 
 	while( !viewer.done() )
 	{		
-		setPosition(speed, f16TrasformNode, viewer);
+		//translateM.setTrans(speed.x(), speed.y(), speed.z());
+		//std::cout << "Speed " << speed.x() << " " << speed.y() << " " << speed.z() <<  std::endl;
+		//modelMatrix = modelMatrix*translateM;
+		//std::cout << "Speed " << speed.x() << " " << speed.y() << " " << speed.z() <<  std::endl;
+		//f16MatrixNode->setMatrix(modelMatrix);
 
-		viewer.home();
-		
+		setPosition(speed, f16MatrixNode, viewer);
+
+		//yaw(0.1, f16MatrixNode, speed, viewer);
+		viewer.home();		
 		viewer.frame();
 	}
 
+	//osgDB::writeNodeFile( *combinedModel, "result.osg");
+
 }
 
-void setPosition(osg::Vec4d& speed, osg::PositionAttitudeTransform* model, osgViewer::Viewer& viewer){
-	double x, y, z;
+void setPosition(osg::Vec3d& speed, osg::MatrixTransform* model, osgViewer::Viewer& viewer){
+	osg::Matrixd translateM;
+	osg::Matrixd modelMatrix = model->getMatrix();
 
-	x = model->getPosition().x() + speed.x();
-	y = model->getPosition().y() + speed.y();
-	z = model->getPosition().z() + speed.z();
+	translateM.setTrans(speed.x(), speed.y(), speed.z());
 
-	//std::cout << speed.x() << " " << speed.y() << " " << speed.z() << std::endl;
+	modelMatrix = modelMatrix*translateM;
 	
-	model->setPosition(osg::Vec3d(x, y, z));
+	model->setMatrix(modelMatrix);
 
-	setCamera(speed, viewer);
+	osg::Vec3d loc = modelMatrix.getTrans();
+
+	std::cout << "location: " << loc.x() << " " << loc.y() << " " << loc.z() <<  std::endl;
+
+	setCamera(modelMatrix, viewer);
 }
 
-void setAttitude(double angle, osg::Vec3f axis, osg::PositionAttitudeTransform* model, osg::Vec4d& speed, osgViewer::Viewer& viewer){
-	osg::Quat attitude = model->getAttitude();
-	osg::Quat rotation(0,0,0,0);
-	osg::Matrixd rotSpeed;
-
-	rotation.makeRotate(osg::DegreesToRadians(angle), axis);
-
-	attitude *= rotation;
-	model->setAttitude(attitude);
-	
-	//std::cout << speed.x() << " " << speed.y() << " " << speed.z() << std::endl;
-	
-	//rotSpeed.setRotate(osg::DegreesToRadians(angle), axis);
-	rotSpeed.makeRotate(osg::DegreesToRadians(angle), axis);
-	//std::cout << "old rotSpeed " << speed.x() << " " << speed.y() << " " << speed.z() << " " << speed.w() << std::endl;
-	speed = speed*rotSpeed;
-	//std::cout << "new rotSpeed " << speed.x() << " " << speed.y() << " " << speed.z() << " " << speed.w() << std::endl;
-
-	attitudeCamera(angle, axis, model, viewer);
-}
-
-void setCamera(osg::Vec4d& speed, osgViewer::Viewer& viewer){
+// Sets camera position for each frame
+void setCamera(osg::Matrixd& modelMatrix, osgViewer::Viewer& viewer){
 	osg::Vec3d eye, center, up;
+	osg::Matrixd translateEye;
+	osg::Matrixd translateCenter;
+
 	osgGA::CameraManipulator* manipulator = viewer.getCameraManipulator();
 
 	if(manipulator == NULL){
 		return;
 	}
 
-	manipulator->getHomePosition(eye, center, up);
-	//std::cout << center.x() << std::endl;
-	//std::cout << eye.x() << std::endl;
+	translateEye.makeTranslate(osg::Vec3d(25.0, 0.0, 7.0));
+	translateCenter.makeTranslate(osg::Vec3d(-INITIAL_POS_X, 0, -INITIAL_POS_Z));
 
+	manipulator->getHomePosition(eye, center, up);
+	//modelMatrix.getLookAt(eye, center, up);
+
+	eye = (modelMatrix*translateEye).getTrans();
+	center = (modelMatrix*translateCenter).getTrans();
+
+	std::cout << "eye: " << eye.x() << std::endl;
+	std::cout << "center: " << center.x() << std::endl;
+
+	/*
 	//center part
 	double curCx = center.x() + speed.x(); 
 	double curCy = center.y() + speed.y();
@@ -143,19 +154,44 @@ void setCamera(osg::Vec4d& speed, osgViewer::Viewer& viewer){
 	eye.set(curEx, curEy, curEz);
 
 	//up part
-
+	*/
 	manipulator->setHomePosition(eye, center, up);
 }
 
-void attitudeCamera(double angle, osg::Vec3f axis, osg::PositionAttitudeTransform* model, osgViewer::Viewer& viewer){
-	osg::Vec3d modelPos = model->getPosition();
-	osg::Vec3d camPos();
+// transformation of model and velocity matrix
+void setAttitude(double angle, osg::Vec3f axis, osg::MatrixTransform* model, osg::Vec3d& speed, osgViewer::Viewer& viewer){
+	osg::Matrixd modelMatrix = model->getMatrix();
+	osg::Matrixd rotSpeed;
+	osg::Matrixd rotation;
+	//osg::Quad rot;
+
+	rotation.makeRotate(osg::DegreesToRadians(angle), axis);
+
+	modelMatrix = rotation*modelMatrix;
+
+	model->setMatrix(modelMatrix);
+
+	rotSpeed.makeRotate(osg::DegreesToRadians(angle), axis);
+	//std::cout << "old rotSpeed " << speed.x() << " " << speed.y() << " " << speed.z() << " " << speed.w() << std::endl;
+	//std::cout << "Speed " << speed.x() << " " << speed.y() << " " << speed.z() << " " << speed.w() << std::endl;
+	speed = speed*rotSpeed;
+	std::cout << "Speed " << speed.x() << " " << speed.y() << " " << speed.z() << std::endl;
+
+	//attitudeCamera(angle, axis, model, viewer);
+}
+
+
+// transform camera matrix
+void attitudeCamera(double angle, osg::Vec3f axis, osg::MatrixTransform* model, osgViewer::Viewer& viewer){
+	osgGA::CameraManipulator* manipulator = viewer.getCameraManipulator();
+	osg::Matrixd modelMatrix = model->getMatrix();
+
+	osg::Vec3d modelPos = modelMatrix.getTrans();
 	osg::Matrixd translateM1;
 	osg::Matrixd translateM2;
 	osg::Matrixd rotateM;
 
 	osg::Vec3d eye, center, up;
-	osgGA::CameraManipulator* manipulator = viewer.getCameraManipulator();
 
 	if(manipulator == NULL){
 		return;
@@ -167,11 +203,12 @@ void attitudeCamera(double angle, osg::Vec3f axis, osg::PositionAttitudeTransfor
 	translateM1.setTrans(-modelPos.x(), -modelPos.y(), -modelPos.z());
 	rotateM.makeRotate(osg::DegreesToRadians(angle), axis);
 
-	//std::cout << modelPos.x() << " " << modelPos.y() << " " << modelPos.z() << std::endl;
-	//std::cout << eye.x() << " " << eye.y() << " " << eye.z() << std::endl;
-	//std::cout << center.x() << " " << center.y() << " " << center.z() << std::endl;
-	//std::cout << eye.x() << " " << eye.y() << " " << eye.z() << std::endl;
 
+	
+	//std::cout << "model position: "<< modelPos.x() << " " << modelPos.y() << " " << modelPos.z() << std::endl;
+	//std::cout << eye.x() << " " << eye.y() << " " << eye.z() << std::endl;
+	//std::cout << "center: " << center.x() << " " << center.y() << " " << center.z() << std::endl;
+	//std::cout << "eye: " << eye.x() << " " << eye.y() << " " << eye.z() << std::endl;
 	//center.set(center.x()+10, center.y(), center.z());
 	
 	eye = eye*translateM1;
@@ -179,7 +216,7 @@ void attitudeCamera(double angle, osg::Vec3f axis, osg::PositionAttitudeTransfor
 	eye = eye*rotateM;
 	//std::cout << eye.x() << " " << eye.y() << " " << eye.z() << std::endl;
 	eye = eye*translateM2;
-	std::cout << eye.x() << " " << eye.y() << " " << eye.z() << std::endl;
+	//std::cout << eye.x() << " " << eye.y() << " " << eye.z() << std::endl;
 	
 	
 	//std::cout << center.x() << " " << center.y() << " " << center.z() << std::endl;
@@ -188,10 +225,14 @@ void attitudeCamera(double angle, osg::Vec3f axis, osg::PositionAttitudeTransfor
 	center = center*rotateM;
 	//std::cout << center.x() << " " << center.y() << " " << center.z() << std::endl;
 	center = center*translateM2;
-	std::cout << center.x() << " " << center.y() << " " << center.z() << std::endl;
+	//std::cout << center.x() << " " << center.y() << " " << center.z() << std::endl;
 	
+	//std::cout << "model position: "<< modelPos.x() << " " << modelPos.y() << " " << modelPos.z() << std::endl;
+	//std::cout << eye.x() << " " << eye.y() << " " << eye.z() << std::endl;
+	//std::cout << "center: " << center.x() << " " << center.y() << " " << center.z() << std::endl;
+	//std::cout << "eye: " << eye.x() << " " << eye.y() << " " << eye.z() << std::endl;
 
-	//eye.set(5000.0, -25.0, 1010.0);
+	//eye.set(0.0, 7025.0, 1007.0);
 	//center.set(5000.0, 5000.0, 0.0);
 	
 	//up = rotateM*up;
@@ -205,15 +246,15 @@ void attitudeCamera(double angle, osg::Vec3f axis, osg::PositionAttitudeTransfor
 	manipulator->setHomePosition(eye, center, up);
 }
 
-void yaw(double angle, osg::PositionAttitudeTransform* model, osg::Vec4d& speed, osgViewer::Viewer& viewer){
+void yaw(double angle, osg::MatrixTransform* model, osg::Vec3d& speed, osgViewer::Viewer& viewer){
 	setAttitude(angle, osg::Z_AXIS, model, speed, viewer);
 }
 
-void roll(double angle, osg::PositionAttitudeTransform* model, osg::Vec4d& speed, osgViewer::Viewer& viewer){
+void roll(double angle, osg::MatrixTransform* model, osg::Vec3d& speed, osgViewer::Viewer& viewer){
 	setAttitude(angle, osg::X_AXIS, model, speed, viewer);
 }
 
-void pitch(double angle, osg::PositionAttitudeTransform* model, osg::Vec4d& speed, osgViewer::Viewer& viewer){
+void pitch(double angle, osg::MatrixTransform* model, osg::Vec3d& speed, osgViewer::Viewer& viewer){
 	setAttitude(angle, osg::Y_AXIS, model, speed, viewer);
 }
 
