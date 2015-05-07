@@ -64,10 +64,10 @@ int main()
 	//model.yaw(-90.0);
 
 	model.rotateX(-90.0);
-	//model.rotateX(-90.0);
-	model.rotateY(45.0);
+	model.rotateX(-90.0);
+	model.rotateY(10.0);
 
-	model.rotateY(90.0);
+	//model.rotateY(90.0);
 	//model.rotateX(-20.0);
 	//model.rotateY(-10.0);
 	//model.rotateY(-10.0);

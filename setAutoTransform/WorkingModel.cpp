@@ -205,7 +205,7 @@ void WorkingModel::rotateCamera(){
 	//std::cout << eye.x() << " " << eye.y() << " " << eye.z() << std::endl;
 	_eye = _eye * _R;
 
-	_eye = rot.postMult(_eye);
+	//_eye = rot.postMult(_eye);
 
 	//std::cout << eye.x() << " " << eye.y() << " " << eye.z() << std::endl;
 	_eye = _eye * _translateM2;
@@ -217,7 +217,7 @@ void WorkingModel::rotateCamera(){
 	//std::cout << center.x() << " " << center.y() << " " << center.z() << std::endl;
 	_center = _center * _R;
 
-	_center = rot.postMult(_center);
+	//_center = rot.postMult(_center);
 
 	//std::cout << center.x() << " " << center.y() << " " << center.z() << std::endl;
 	_center = _center * _translateM2;
@@ -228,9 +228,9 @@ void WorkingModel::rotateCamera(){
 
 	_up = _first_up * _R ;
 
-	_up = rot.postMult(_up);
+	//_up = rot.postMult(_up);
 
-	_up = _up * _translateM2;
+	//_up = _up * _translateM2;
 
-	//_trballman->setHomePosition(_eye, _center, _up);
+	_trballman->setHomePosition(_eye, _center, _up);
 }
