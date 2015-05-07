@@ -8,9 +8,6 @@
 #include <iostream>
 #include <string>
 
-#define INITIAL_POS_X 5000.0
-#define INITIAL_POS_Y 1000.0
-
 using namespace std;
 
 osg::Node* findNamedNode(const std::string& searchName, osg::Node* currNode);
@@ -40,13 +37,9 @@ int main()
     osg::AutoTransform* f16TrasformNode = NULL;
 	osgViewer::Viewer viewer;
 
-	osg::Vec3d  eye = osg::Vec3d(INITIAL_POS_X+25, 0.0, INITIAL_POS_Y+10);
-	osg::Vec3d  center = osg::Vec3d(0.0,0.0,0.0);
-	osg::Vec3d  up = osg::Vec3d(0.0, 0.0, 1.0);
-    osg::Quat f16_rotation(osg::DegreesToRadians(90.0), osg::X_AXIS);
-    osg::Vec4d speed(-4.0,0.0,0.0, 1.0);
 	combinedModel = osgDB::readNodeFile("converted.osg");
 	f16 = findNamedNode(std::string("f16base"), combinedModel);
+	osgGA::TrackballManipulator *Tman = new osgGA::TrackballManipulator();
 
     f16TrasformNode = dynamic_cast<osg::AutoTransform*>(f16->asGroup()->getChild(0));
 	
@@ -54,36 +47,34 @@ int main()
         std::cout << "AutoTransform not found!";
 		return -1;
 	}
-
-	f16TrasformNode->setPosition( osg::Vec3d(INITIAL_POS_X, 0.0, INITIAL_POS_Y) );
-    f16TrasformNode->setRotation(f16_rotation);
-
-	osgGA::TrackballManipulator *Tman = new osgGA::TrackballManipulator();
-    WorkingModel model(f16TrasformNode);
+	
+    WorkingModel model(f16TrasformNode, Tman);
 
 	viewer.setCameraManipulator(Tman);
     viewer.setSceneData( combinedModel );
 	viewer.realize();
-	Tman->setHomePosition(eye, center, up);
+	
 
 	viewer.home();
 
-    /*
-    osg::Vec3d axis = f16TrasformNode->getNormal();
-    f16TrasformNode->setNormal(osg::X_AXIS);
-    std::cout << "x: " << axis.x() << " y: " << axis.y() << " z: " << axis.z() << std::endl;
-    osg::Vec3d axis2 = f16TrasformNode->getNormal();
-    std::cout << "x: " << axis2.x() << " y: " << axis2.y() << " z: " << axis2.z() << std::endl;
-    */
-
-    yaw(-90.0, f16TrasformNode, speed, viewer);
-    pitch(90.0, f16TrasformNode, speed, viewer);
+    //yaw(-90.0, f16TrasformNode, speed, viewer);
+    //pitch(90.0, f16TrasformNode, speed, viewer);
     //roll(-90.0, f16TrasformNode, speed, viewer);
+
+	//model.yaw(-90.0);
+
+	model.rotateX(-90.0);
+	//model.rotateY(-10.0);
+	//model.rotateY(10.0);
 
 	while( !viewer.done() )
 	{		
 
-        //viewer.home();
+		//model.rotateY(-0.01);
+
+		model.nextPosition();
+		
+        viewer.home();
 		viewer.frame();
 	}
 

@@ -1,18 +1,203 @@
 #include "WorkingModel.h"
+#include <iostream>
 
-WorkingModel::WorkingModel(osg::AutoTransform* _model){
-	this->model = _model;
-	this->currentRotation = model->getRotation();
+using namespace std;
+
+WorkingModel::WorkingModel(osg::AutoTransform* model, osgGA::TrackballManipulator *manipulator){
+	this->_model = model;
+	this->_trballman = manipulator;
+	_speedV = osg::Vec3d(-4.0,0.0,0.0);
+	_firstSpeed = osg::Vec3d(-4.0,0.0,0.0);
+	init_model();
 }
 
-void WorkingModel::setWorkRotation(osg::Quat& newRotation){
-	this->currentRotation = newRotation;
+void WorkingModel::init_model(){
+
+	osg::Vec3d  eye = osg::Vec3d(INITIAL_POS_X+25, 0.0, INITIAL_POS_Y+10);
+	osg::Vec3d  center = osg::Vec3d(0.0,0.0,0.0);
+	osg::Vec3d  up = osg::Vec3d(0.0, 0.0, 1.0);
+
+	osg::Quat f16_rotation(osg::DegreesToRadians(90.0), osg::X_AXIS);
+
+	_model->setPosition( osg::Vec3d(INITIAL_POS_X, 0.0, INITIAL_POS_Y) );
+    _model->setRotation(f16_rotation);
+
+    _trballman->setHomePosition(eye, center, up);
+
+    _firstRot = _model->getRotation();
+
+    _trballman->getHomePosition(_first_eye, _first_center, _first_up);
 }
 
-osg::Quat& WorkingModel::getWorkRotation(){
-	return this->currentRotation;
+void WorkingModel::nextPosition(){
+
+	setPositionModel();
+	setPositionCamera();
+
 }
 
-osg::AutoTransform* WorkingModel::getModel(){
-	return this->model;
+void WorkingModel::setPositionModel(){
+	double x, y, z;
+
+	x = _model->getPosition().x() + _speedV.x();
+	y = _model->getPosition().y() + _speedV.y();
+	z = _model->getPosition().z() + _speedV.z();
+
+    //std::cout << "x:" << speed.x() << " y:" << speed.y() << " z:" << speed.z() << std::endl;
+	
+	_model->setPosition(osg::Vec3d(x, y, z));
+}
+
+void WorkingModel::setPositionCamera(){
+
+	//std::cout << center.x() << std::endl;
+	//std::cout << eye.x() << std::endl;
+	_trballman->getHomePosition(_eye, _center, _up);
+
+	//center part
+	double curCx = _center.x() + _speedV.x(); 
+	double curCy = _center.y() + _speedV.y();
+	double curCz = _center.z() + _speedV.z();
+	_center.set(curCx, curCy, curCz);
+
+	//eye part
+	double curEx = _eye.x() + _speedV.x(); 
+	double curEy = _eye.y() + _speedV.y();
+	double curEz = _eye.z() + _speedV.z();
+	_eye.set(curEx, curEy, curEz);
+
+	//up part
+
+	_trballman->setHomePosition(_eye, _center, _up);
+}
+
+void WorkingModel::yaw(double angle){
+
+	osg::Quat model_rot = _model->getRotation();
+	osg::Quat _rotate;
+	osg::Quat _rotate2;
+	osg::Quat _rotate3;
+
+	_rotate.makeRotate(osg::DegreesToRadians(-90.0), osg::X_AXIS);
+	_rotate2.makeRotate(osg::DegreesToRadians(-10.0), osg::Y_AXIS);
+	//_rotate3.makeRotate(osg::DegreesToRadians(-10.0), osg::Y_AXIS);
+	//_rotate.makeRotate(osg::DegreesToRadians(angle), osg::Y_AXIS);
+
+	//model_rot *= _rotate;
+	
+	_model->setRotation(_rotate*model_rot);
+
+	//model_rot = _model->getRotation();
+	
+	_rotate = _rotate * _rotate2;
+
+	//model_rot *= _rotate;
+
+	_model->setRotation(_rotate*model_rot);
+/*
+	model_rot = _model->getRotation();
+
+	_rotate = _rotate3 * _rotate;
+
+	model_rot *= _rotate;
+
+	_model->setRotation(model_rot);
+*/	
+
+	//osg::Quat newrot;
+
+	//newrot.makeRotate(osg::DegreesToRadians(45.0), osg::Y_AXIS);	
+	
+	//newrot *= _rotate;
+
+	//rot *= (newrot);
+
+	//_speedV =  _rotate * _speedV;
+
+	//rot.makeRotate(osg::DegreesToRadians(angle), osg::Z_AXIS);
+
+	//_model->setRotation(rot);
+}
+void WorkingModel::rotate(double angle, osg::Vec3f axis){
+	osg::Matrixd rotate;
+	//osg::Matrixd rotateB;
+
+	rotate.makeRotate(osg::DegreesToRadians(angle), axis);
+	//rotateB.makeRotate(osg::DegreesToRadians(B_angle), osg::Y_AXIS);	
+
+	// rotation matrix computed
+	_R = _R * rotate ;
+
+	//std::cout << "x:" << _speedV.x() << " y:" << _speedV.y() << " z:" << _speedV.z()  << std::endl;
+	// rotation of speed vector 
+
+	//std::cout << "x:" << _speedV.x() << " y:" << _speedV.y() << " z:" << _speedV.z() << std::endl;
+
+	rotateModel(); 	// Rotate model in this function
+	rotateCamera();	// Rotate camera position in this function
+	rotateSpeedV();
+}
+
+void WorkingModel::rotateX(double angle){
+	rotate(angle, osg::X_AXIS);
+}
+
+void WorkingModel::rotateY(double angle){
+	rotate(angle, osg::Y_AXIS);
+}
+
+void WorkingModel::rotateModel(){
+	//osg::Vec3d modelPos = _model->getPosition();
+	//osg::Quat model_rot = _model->getRotation();
+
+	//osg::Matrixd modelM(model_rot);
+	//_translateM2.setTrans(modelPos.x(), modelPos.y(), modelPos.z());
+	//_translateM1.setTrans(-modelPos.x(), -modelPos.y(), -modelPos.z());
+	_modelM.makeIdentity();
+
+	_modelM.makeRotate(_firstRot);
+
+	//_modelM * _translateM1;
+	//_modelM *= _R;
+	//_modelM * _translateM2;
+
+	//model_rot = model_rot * _R; // Rotate model
+
+	_model->setRotation((_R *_modelM).getRotate());
+	//_model->setRotation();
+}
+void WorkingModel::rotateSpeedV(){
+
+	//std::cout << "x:" << _speedV.x() << " y:" << _speedV.y() << " z:" << _speedV.z()  << std::endl;
+	//_speedV = _R * _firstSpeed;
+	//std::cout << "x:" << _speedV.x() << " y:" << _speedV.y() << " z:" << _speedV.z()  << std::endl;
+
+}
+void WorkingModel::rotateCamera(){
+	osg::Vec3d modelPos = _model->getPosition();
+	
+	//_trballman->getHomePosition(_eye, _center, _up);
+
+	_translateM2.setTrans(modelPos.x(), modelPos.y(), modelPos.z());
+	_translateM1.setTrans(-modelPos.x(), -modelPos.y(), -modelPos.z());
+
+	_eye = _first_eye * _translateM1;
+	//std::cout << eye.x() << " " << eye.y() << " " << eye.z() << std::endl;
+	_eye = _eye * _R;
+	//std::cout << eye.x() << " " << eye.y() << " " << eye.z() << std::endl;
+	_eye = _eye * _translateM2;
+    //std::cout << eye.x() << " " << eye.y() << " " << eye.z() << std::endl;
+	
+	
+	//std::cout << center.x() << " " << center.y() << " " << center.z() << std::endl;
+	_center = _first_center * _translateM1;
+	//std::cout << center.x() << " " << center.y() << " " << center.z() << std::endl;
+	_center = _center * _R;
+	//std::cout << center.x() << " " << center.y() << " " << center.z() << std::endl;
+	_center = _center * _translateM2;
+    //std::cout << center.x() << " " << center.y() << " " << center.z() << std::endl;
+
+	_up = _first_up * _R;
+
+	_trballman->setHomePosition(_eye, _center, _up);
 }
