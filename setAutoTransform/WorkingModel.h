@@ -28,12 +28,16 @@ class WorkingModel
 		osg::Vec3d _first_up;
 		
 		void rotateSpeedV();
-		void setRotate();
+		
 	    void rotateModel();
 	    void rotateCamera();
 	    void setPositionModel();
 	    void setPositionCamera();
 
+	   	// Rotation function
+	    void rotate(double, osg::Vec3f);
+	    void rotateX(double);
+	    void rotateY(double);
 
       public :
 	    //Constructor
@@ -42,11 +46,9 @@ class WorkingModel
 	    // Some calibration staff
 	    void init_model();
 
-	    // Rotation function
-	    void rotate(double, osg::Vec3f);
-	    void rotateX(double);
-	    void rotateY(double);
-
+	    // main rotation function
+	    void setRotation(double, double);
+	    
 	    // sets next position of the model
 	    void nextPosition();
 	    

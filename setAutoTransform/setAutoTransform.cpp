@@ -62,10 +62,12 @@ int main()
     //roll(-90.0, f16TrasformNode, speed, viewer);
 
 	//model.yaw(-90.0);
+	model.setRotation(-90.0, 45.0);
+	//model.setRotation(0.0, 45.0);
 
-	model.rotateX(-90.0);
-	model.rotateX(-90.0);
-	model.rotateY(10.0);
+	//model.rotateX(-90.0);
+	//model.rotateY(45.0);
+	//model.rotateX(-20.0);
 
 	//model.rotateY(90.0);
 	//model.rotateX(-20.0);

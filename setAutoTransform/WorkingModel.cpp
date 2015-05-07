@@ -145,6 +145,11 @@ void WorkingModel::rotate(double angle, osg::Vec3f axis){
 		rotateSpeedV();
 }
 
+void WorkingModel::setRotation(double X_angle, double Y_angle){
+	rotateX(X_angle);
+	rotateY(Y_angle);
+}
+
 void WorkingModel::rotateX(double angle){
 	rotate(angle, osg::X_AXIS);
 }
