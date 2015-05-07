@@ -15,11 +15,11 @@ class WorkingModel
 		osg::AutoTransform* _model;			// Model node
 		osg::Matrixd _modelM;
 		osg::Quat _firstRot;
-		osg::Vec4d _firstSpeed;
+		osg::Vec3d _speedV;					// speed vector
+		osg::Vec3d _firstSpeed;
 		osg::Matrixd _R;					// rotation matrix accumulator
 		osg::Matrixd _translateM1;
 		osg::Matrixd _translateM2;
-		osg::Vec4d _speedV;					// speed vector
 		osg::Vec3d _eye;
 		osg::Vec3d _center;
 		osg::Vec3d _up;

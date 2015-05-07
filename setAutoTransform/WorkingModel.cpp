@@ -7,8 +7,8 @@ using namespace std;
 WorkingModel::WorkingModel(osg::AutoTransform* model, osgGA::TrackballManipulator *manipulator){
 	this->_model = model;
 	this->_trballman = manipulator;
-	_speedV = osg::Vec4d(-4.0,0.0,0.0,1.0);
-	_firstSpeed = osg::Vec4d(-4.0,0.0,0.0,1.0);
+	_speedV = osg::Vec3d(-4.0,0.0,0.0);
+	_firstSpeed = osg::Vec3d(-4.0,0.0,0.0);
 	init_model();
 }
 
@@ -77,35 +77,37 @@ void WorkingModel::setPositionCamera(){
 void WorkingModel::yaw(double angle){
 
 	osg::Quat model_rot = _model->getRotation();
+	
 	osg::Quat _rotate;
+	osg::Quat _rotate1;
 	osg::Quat _rotate2;
 	osg::Quat _rotate3;
 
-	_rotate.makeRotate(osg::DegreesToRadians(-90.0), osg::X_AXIS);
-	_rotate2.makeRotate(osg::DegreesToRadians(-10.0), osg::Y_AXIS);
-	//_rotate3.makeRotate(osg::DegreesToRadians(-10.0), osg::Y_AXIS);
+	_rotate1.makeRotate(osg::DegreesToRadians(-90.0), osg::X_AXIS);
+	_rotate2.makeRotate(osg::DegreesToRadians(-90.0), osg::X_AXIS);
+	_rotate3.makeRotate(osg::DegreesToRadians(-90.0), osg::Y_AXIS);
 	//_rotate.makeRotate(osg::DegreesToRadians(angle), osg::Y_AXIS);
 
-	//model_rot *= _rotate;
+	_rotate *= _rotate1;
 	
-	_model->setRotation(_rotate*model_rot);
+	_model->setRotation(model_rot*_rotate);
 
 	//model_rot = _model->getRotation();
 	
-	_rotate = _rotate * _rotate2;
+	_rotate =   _rotate2 * _rotate;
 
 	//model_rot *= _rotate;
 
-	_model->setRotation(_rotate*model_rot);
-/*
-	model_rot = _model->getRotation();
+	_model->setRotation(model_rot * _rotate);
+
+	//model_rot = _model->getRotation();
 
 	_rotate = _rotate3 * _rotate;
 
-	model_rot *= _rotate;
+	//model_rot *= _rotate;
 
-	_model->setRotation(model_rot);
-*/	
+	_model->setRotation(model_rot * _rotate);
+	
 
 	//osg::Quat newrot;
 
@@ -129,7 +131,7 @@ void WorkingModel::rotate(double angle, osg::Vec3f axis){
 	//rotateB.makeRotate(osg::DegreesToRadians(B_angle), osg::Y_AXIS);	
 
 	// rotation matrix computed
-	_R = _R * rotate ;
+	_R = rotate * _R;
 
 	//std::cout << "x:" << _speedV.x() << " y:" << _speedV.y() << " z:" << _speedV.z()  << std::endl;
 	// rotation of speed vector 
@@ -138,7 +140,9 @@ void WorkingModel::rotate(double angle, osg::Vec3f axis){
 
 	rotateModel(); 	// Rotate model in this function
 	rotateCamera();	// Rotate camera position in this function
-	rotateSpeedV();
+	
+	//if(axis != osg::X_AXIS)
+		rotateSpeedV();
 }
 
 void WorkingModel::rotateX(double angle){
@@ -166,7 +170,7 @@ void WorkingModel::rotateModel(){
 
 	//model_rot = model_rot * _R; // Rotate model
 
-	_model->setRotation((_R *_modelM).getRotate());
+	_model->setRotation((_modelM*_R).getRotate());
 	//_model->setRotation();
 }
 void WorkingModel::rotateSpeedV(){
@@ -175,19 +179,24 @@ void WorkingModel::rotateSpeedV(){
 
 	rot.makeRotate(osg::DegreesToRadians(-90.0), osg::X_AXIS);
 	
+	std::cout << "ilk: ";
 	std::cout << "x:" << _speedV.x() << " y:" << _speedV.y() << " z:" << _speedV.z()  << std::endl;
-	
-	_speedV = _R.preMult(_firstSpeed);
+	//std::cout << "-----------------------" << endl;
 
-	_speedV = rot.postMult(_speedV);
+	_speedV = _firstSpeed * _R;
 
+	//_speedV = rot.postMult(_speedV);
+
+	std::cout << "son: ";
 	std::cout << "x:" << _speedV.x() << " y:" << _speedV.y() << " z:" << _speedV.z()  << std::endl;
-
+	std::cout << "-----------------------" << endl;
+	std::cout << endl;
 }
 void WorkingModel::rotateCamera(){
+	osg::Matrixd rot;
 	osg::Vec3d modelPos = _model->getPosition();
-	
 	//_trballman->getHomePosition(_eye, _center, _up);
+	rot.makeRotate(osg::DegreesToRadians(-90.0), osg::X_AXIS);
 
 	_translateM2.setTrans(modelPos.x(), modelPos.y(), modelPos.z());
 	_translateM1.setTrans(-modelPos.x(), -modelPos.y(), -modelPos.z());
@@ -195,6 +204,9 @@ void WorkingModel::rotateCamera(){
 	_eye = _first_eye * _translateM1;
 	//std::cout << eye.x() << " " << eye.y() << " " << eye.z() << std::endl;
 	_eye = _eye * _R;
+
+	_eye = rot.postMult(_eye);
+
 	//std::cout << eye.x() << " " << eye.y() << " " << eye.z() << std::endl;
 	_eye = _eye * _translateM2;
     //std::cout << eye.x() << " " << eye.y() << " " << eye.z() << std::endl;
@@ -204,11 +216,21 @@ void WorkingModel::rotateCamera(){
 	_center = _first_center * _translateM1;
 	//std::cout << center.x() << " " << center.y() << " " << center.z() << std::endl;
 	_center = _center * _R;
+
+	_center = rot.postMult(_center);
+
 	//std::cout << center.x() << " " << center.y() << " " << center.z() << std::endl;
 	_center = _center * _translateM2;
     //std::cout << center.x() << " " << center.y() << " " << center.z() << std::endl;
 
-	_up = _first_up * _R;
+	//_up = rot.postMult(_up);
+	//_up = _up * _translateM1;
 
-	_trballman->setHomePosition(_eye, _center, _up);
+	_up = _first_up * _R ;
+
+	_up = rot.postMult(_up);
+
+	_up = _up * _translateM2;
+
+	//_trballman->setHomePosition(_eye, _center, _up);
 }
