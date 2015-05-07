@@ -64,13 +64,16 @@ int main()
 	//model.yaw(-90.0);
 
 	model.rotateX(-90.0);
+	model.rotateY(-10.0);
+	model.rotateY(-10.0);
 	//model.rotateY(-10.0);
+	//model.rotateY(10.0);
 	//model.rotateY(10.0);
 
 	while( !viewer.done() )
 	{		
 
-		//model.rotateY(-0.01);
+		//model.rotateY(-0.0000001);
 
 		model.nextPosition();
 		

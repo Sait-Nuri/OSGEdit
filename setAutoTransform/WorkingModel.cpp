@@ -1,13 +1,14 @@
 #include "WorkingModel.h"
 #include <iostream>
+#include <osgDB/WriteFile>
 
 using namespace std;
 
 WorkingModel::WorkingModel(osg::AutoTransform* model, osgGA::TrackballManipulator *manipulator){
 	this->_model = model;
 	this->_trballman = manipulator;
-	_speedV = osg::Vec3d(-4.0,0.0,0.0);
-	_firstSpeed = osg::Vec3d(-4.0,0.0,0.0);
+	_speedV = osg::Vec4d(-4.0,0.0,0.0,1.0);
+	_firstSpeed = osg::Vec4d(-4.0,0.0,0.0,1.0);
 	init_model();
 }
 
@@ -18,6 +19,8 @@ void WorkingModel::init_model(){
 	osg::Vec3d  up = osg::Vec3d(0.0, 0.0, 1.0);
 
 	osg::Quat f16_rotation(osg::DegreesToRadians(90.0), osg::X_AXIS);
+	
+	//osgDB::writeNodeFile(*_model, "output.osg");
 
 	_model->setPosition( osg::Vec3d(INITIAL_POS_X, 0.0, INITIAL_POS_Y) );
     _model->setRotation(f16_rotation);
@@ -168,9 +171,17 @@ void WorkingModel::rotateModel(){
 }
 void WorkingModel::rotateSpeedV(){
 
-	//std::cout << "x:" << _speedV.x() << " y:" << _speedV.y() << " z:" << _speedV.z()  << std::endl;
-	//_speedV = _R * _firstSpeed;
-	//std::cout << "x:" << _speedV.x() << " y:" << _speedV.y() << " z:" << _speedV.z()  << std::endl;
+	osg::Matrixd rot;
+
+	rot.makeRotate(osg::DegreesToRadians(-90.0), osg::X_AXIS);
+	
+	std::cout << "x:" << _speedV.x() << " y:" << _speedV.y() << " z:" << _speedV.z()  << std::endl;
+	
+	_speedV = _R.preMult(_firstSpeed);
+
+	_speedV = rot.postMult(_speedV);
+
+	std::cout << "x:" << _speedV.x() << " y:" << _speedV.y() << " z:" << _speedV.z()  << std::endl;
 
 }
 void WorkingModel::rotateCamera(){
