@@ -8,6 +8,7 @@ WorkingModel::WorkingModel(osg::AutoTransform* model, osgGA::TrackballManipulato
 	this->_model = model;
 	this->_trballman = manipulator;
 	_speedV = osg::Vec3d(-4.0,0.0,0.0);
+	_cameraspeed = osg::Vec3d(0.0,0.0,0.0);
 	_firstSpeed = osg::Vec3d(-4.0,0.0,0.0);
 	init_model();
 }
@@ -34,6 +35,8 @@ void WorkingModel::init_model(){
 
 void WorkingModel::nextPosition(){
 
+	cout << "next position here" << endl;
+
 	setPositionModel();
 	setPositionCamera();
 
@@ -52,9 +55,28 @@ void WorkingModel::setPositionModel(){
 }
 
 void WorkingModel::setPositionCamera(){
+	/*
+	_cameraspeed.set(
+			_cameraspeed.x() + _speedV.x(),
+			_cameraspeed.y() + _speedV.y(),
+			_cameraspeed.z() + _speedV.z()
+		);
+	*/
 
-	//std::cout << center.x() << std::endl;
-	//std::cout << eye.x() << std::endl;
+	_first_eye.set(
+			_first_eye.x() + _speedV.x(),
+			_first_eye.y() + _speedV.y(),
+			_first_eye.z() + _speedV.z()
+		);
+
+	_first_center.set(
+			_first_center.x() + _speedV.x(),
+			_first_center.y() + _speedV.y(),
+			_first_center.z() + _speedV.z()
+		);
+
+	//printLocationCamera();
+	/*
 	_trballman->getHomePosition(_eye, _center, _up);
 
 	//center part
@@ -69,9 +91,9 @@ void WorkingModel::setPositionCamera(){
 	double curEz = _eye.z() + _speedV.z();
 	_eye.set(curEx, curEy, curEz);
 
-	//up part
-
 	_trballman->setHomePosition(_eye, _center, _up);
+	*/
+	//printLocationCamera();
 }
 
 void WorkingModel::yaw(double angle){
@@ -133,16 +155,11 @@ void WorkingModel::rotate(double angle, osg::Vec3f axis){
 	// rotation matrix computed
 	_R = rotate * _R;
 
-	//std::cout << "x:" << _speedV.x() << " y:" << _speedV.y() << " z:" << _speedV.z()  << std::endl;
-	// rotation of speed vector 
-
-	//std::cout << "x:" << _speedV.x() << " y:" << _speedV.y() << " z:" << _speedV.z() << std::endl;
-
-	rotateModel(); 	// Rotate model in this function
-	rotateCamera();	// Rotate camera position in this function
+	rotateModel(); 	// Rotate model 
+	rotateCamera();	// Rotate camera
 	
 	//if(axis != osg::X_AXIS)
-		rotateSpeedV();
+	rotateSpeedV();
 }
 
 void WorkingModel::setRotation(double X_angle, double Y_angle){
@@ -184,24 +201,29 @@ void WorkingModel::rotateSpeedV(){
 
 	rot.makeRotate(osg::DegreesToRadians(-90.0), osg::X_AXIS);
 	
-	std::cout << "ilk: ";
-	std::cout << "x:" << _speedV.x() << " y:" << _speedV.y() << " z:" << _speedV.z()  << std::endl;
-	//std::cout << "-----------------------" << endl;
+	if(SPEED_VEC){
+		std::cout << "ilk: ";
+		std::cout << "x:" << _speedV.x() << " y:" << _speedV.y() << " z:" << _speedV.z()  << std::endl;
+		std::cout << "-----------------------" << endl;		
+	}
+	
 
 	_speedV = _firstSpeed * _R;
 
 	//_speedV = rot.postMult(_speedV);
 
-	std::cout << "son: ";
-	std::cout << "x:" << _speedV.x() << " y:" << _speedV.y() << " z:" << _speedV.z()  << std::endl;
-	std::cout << "-----------------------" << endl;
-	std::cout << endl;
+	if(SPEED_VEC){
+		std::cout << "son: ";
+		std::cout << "x:" << _speedV.x() << " y:" << _speedV.y() << " z:" << _speedV.z()  << std::endl;
+		std::cout << "-----------------------" << endl;
+		std::cout << endl;
+	}
 }
 void WorkingModel::rotateCamera(){
 	osg::Matrixd rot;
 	osg::Vec3d modelPos = _model->getPosition();
 	//_trballman->getHomePosition(_eye, _center, _up);
-	rot.makeRotate(osg::DegreesToRadians(-90.0), osg::X_AXIS);
+	//rot.makeRotate(osg::DegreesToRadians(-90.0), osg::X_AXIS);
 
 	_translateM2.setTrans(modelPos.x(), modelPos.y(), modelPos.z());
 	_translateM1.setTrans(-modelPos.x(), -modelPos.y(), -modelPos.z());
@@ -238,4 +260,22 @@ void WorkingModel::rotateCamera(){
 	//_up = _up * _translateM2;
 
 	_trballman->setHomePosition(_eye, _center, _up);
+}
+
+void WorkingModel::printLocationModel(){
+	osg::Vec3d modelPos = _model->getPosition();
+
+	cout << "x: " << modelPos.x() << " y: " << modelPos.y() << " z: " << modelPos.z() << endl;
+}
+
+void WorkingModel::printLocationCamera(){
+	osg::Vec3d eye, center, up;
+
+	_trballman->getHomePosition(eye, center, up);
+
+	cout << "------------------------------------------------------------------------" << endl;
+	cout << "eye x: " << eye.x() << " eye y: " << eye.y() << " eye z: " << eye.z() << endl;
+	cout << "center x: " << center.x() << " center y: " << center.y() << " center z: " << center.z() << endl;
+	cout << "up x: " << up.x() << " up y: " << up.y() << " up z: " << up.z() << endl;
+	cout << "------------------------------------------------------------------------" << endl;
 }

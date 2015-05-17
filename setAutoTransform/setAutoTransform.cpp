@@ -54,36 +54,19 @@ int main()
     viewer.setSceneData( combinedModel );
 	viewer.realize();
 	
-
 	viewer.home();
 
-    //yaw(-90.0, f16TrasformNode, speed, viewer);
-    //pitch(90.0, f16TrasformNode, speed, viewer);
-    //roll(-90.0, f16TrasformNode, speed, viewer);
+	//model.nextPosition();
 
-	//model.yaw(-90.0);
-	model.setRotation(-90.0, 45.0);
-	//model.setRotation(0.0, 45.0);
-
-	//model.rotateX(-90.0);
-	//model.rotateY(45.0);
-	//model.rotateX(-20.0);
-
-	//model.rotateY(90.0);
-	//model.rotateX(-20.0);
-	//model.rotateY(-10.0);
-	//model.rotateY(-10.0);
-	//model.rotateY(-10.0);
-	//model.rotateY(10.0);
-	//model.rotateY(10.0);
+	model.setRotation(-45.0, 0.0);
 
 	while( !viewer.done() )
 	{		
 
-		//model.rotateY(-0.0000001);
-
-		model.nextPosition();
+		//model.setRotation(-0.1, 0.1);
 		
+		model.nextPosition();
+
         viewer.home();
 		viewer.frame();
 	}

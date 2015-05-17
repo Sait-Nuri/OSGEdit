@@ -7,6 +7,7 @@
 
 #define INITIAL_POS_X 5000.0
 #define INITIAL_POS_Y 1000.0
+#define SPEED_VEC 0
 
 class WorkingModel
 {
@@ -16,6 +17,7 @@ class WorkingModel
 		osg::Matrixd _modelM;
 		osg::Quat _firstRot;
 		osg::Vec3d _speedV;					// speed vector
+		osg::Vec3d _cameraspeed;
 		osg::Vec3d _firstSpeed;
 		osg::Matrixd _R;					// rotation matrix accumulator
 		osg::Matrixd _translateM1;
@@ -53,6 +55,12 @@ class WorkingModel
 	    void nextPosition();
 	    
 	    void yaw(double angle);
+
+	    // Prints location points of the model
+	    void printLocationModel();
+
+	    // Prints location points of the model
+	    void printLocationCamera();
 };
  
 #endif 
