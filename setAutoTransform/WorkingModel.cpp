@@ -35,7 +35,7 @@ void WorkingModel::init_model(){
 
 void WorkingModel::nextPosition(){
 
-	cout << "next position here" << endl;
+	//cout << "next position here" << endl;
 
 	setPositionModel();
 	setPositionCamera();
@@ -55,28 +55,7 @@ void WorkingModel::setPositionModel(){
 }
 
 void WorkingModel::setPositionCamera(){
-	/*
-	_cameraspeed.set(
-			_cameraspeed.x() + _speedV.x(),
-			_cameraspeed.y() + _speedV.y(),
-			_cameraspeed.z() + _speedV.z()
-		);
-	*/
-
-	_first_eye.set(
-			_first_eye.x() + _speedV.x(),
-			_first_eye.y() + _speedV.y(),
-			_first_eye.z() + _speedV.z()
-		);
-
-	_first_center.set(
-			_first_center.x() + _speedV.x(),
-			_first_center.y() + _speedV.y(),
-			_first_center.z() + _speedV.z()
-		);
-
-	//printLocationCamera();
-	/*
+	
 	_trballman->getHomePosition(_eye, _center, _up);
 
 	//center part
@@ -92,6 +71,22 @@ void WorkingModel::setPositionCamera(){
 	_eye.set(curEx, curEy, curEz);
 
 	_trballman->setHomePosition(_eye, _center, _up);
+
+	_first_eye.set(
+			_first_eye.x() + _speedV.x(),
+			_first_eye.y() + _speedV.y(),
+			_first_eye.z() + _speedV.z()
+		);
+
+	_first_center.set(
+			_first_center.x() + _speedV.x(),
+			_first_center.y() + _speedV.y(),
+			_first_center.z() + _speedV.z()
+		);
+
+	//printLocationCamera();
+	/*
+	
 	*/
 	//printLocationCamera();
 }

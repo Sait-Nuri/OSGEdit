@@ -58,12 +58,22 @@ int main()
 
 	//model.nextPosition();
 
-	model.setRotation(-45.0, 0.0);
+	cout << "##########################################" << endl;
+	
+	model.printLocationModel();
+	model.printLocationCamera();
 
+	model.setRotation(-90.0, 0.0);
+
+	model.printLocationModel();
+	model.printLocationCamera();
+
+	cout << "##########################################" << endl;
+	
 	while( !viewer.done() )
 	{		
 
-		//model.setRotation(-0.1, 0.1);
+		model.setRotation(-0.0, 0.1);
 		
 		model.nextPosition();
 
